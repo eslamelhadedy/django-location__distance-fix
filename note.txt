@@ -1,0 +1,27 @@
+follow this link:https://www.calculator.net/distance-calculator.html
+from django.contrib.gis.geos import Point
+#models.py
+class BrandInfo(models.Model):
+    User = models.ForeignKey(User, on_delete=models.CASCADE)
+    location=models.PointField(blank = True, null=True, default=Point(31.1498340,31.3105733, srid=4326))
+    def __str__(self):
+        return self.BrandName
+
+def distance_to_decimal_degree(distance,latitude):
+    import math
+    lat_radians=latitude*(math.pi/180)
+    return distance.m/(111_319.5*math.cos(lat_radians))
+
+@api_view(['GET'])
+@csrf_exempt
+def nearby_brands(request):
+    from geopy.distance import geodesic
+    if "lat"  and "lng" and "radius"  and "limit"  in request.GET:
+        myLocation=Point(31.149834,31.3105733,srid=4326)
+        brands=BrandInfo.objects.filter(location__distance_lte=(myLocation, distance_to_decimal_degree(D(m=100),myLocation.y)))
+
+        print(brands)
+        for brand in brands:
+            print(brand.BrandName,geodesic(myLocation,Point(brand.location.x,brand.location.y)))
+     
+        return Response(brands.values())
